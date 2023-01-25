@@ -1,0 +1,125 @@
+const c = el => document.querySelector(el);
+const cs = els => document.querySelectorAll(els);
+
+let modalQt = 1;
+let cart = [];
+// let modalKey = 0;
+
+pizzaJson.forEach((item, index) => {
+    
+    //create all the pizzas
+    let pizzaItem = c(".models .pizza-item").cloneNode(true);
+
+    // pizzaItem.setAttribute("data-key", index); //set key
+    pizzaItem.querySelector(".pizza-item--img img").src = item.img;
+    pizzaItem.querySelector(".pizza-item--price").innerHTML = `R$ ${item.price.toFixed(2)}`;
+    pizzaItem.querySelector(".pizza-item--name").innerHTML = item.name;
+    pizzaItem.querySelector(".pizza-item--desc").innerHTML = item.description;
+    pizzaItem.id = item.id; //my code
+    c(".pizza-area").append(pizzaItem);
+
+    //add event to show modal
+    pizzaItem.querySelector("a").addEventListener("click", (e)=> {
+        e.preventDefault();
+        modalQt = 1;
+
+        // let key = e.currentTarget.closest(".pizza-item").getAttribute('data-key'); //get key
+        // modalKey = key;
+
+        //put current clicked pizza info to the modal
+        c(".pizzaWindowArea img").src = item.img;
+        c(".pizzaInfo h1").innerHTML = item.name;
+        c(".pizzaInfo--desc").innerHTML = item.description;
+        c(".pizzaInfo--actualPrice").innerHTML = `R$ ${item.price.toFixed(2)}`;
+        c(".pizzaWindowArea").setAttribute("data-id", item.id); //my code
+
+        //put pizza sizes
+        cs(".pizzaInfo--size").forEach((value, index) => {
+
+            value.querySelector("span").innerHTML = item.sizes[index];
+        });
+
+        //remove selected size
+        c(".pizzaInfo--size.selected").classList.remove("selected");
+        //add selected size to the last item
+        cs(".pizzaInfo--size")[cs(".pizzaInfo--size").length - 1].classList.add("selected");
+
+        //pizza quantity
+        c(".pizzaInfo--qt").innerHTML = modalQt;
+        
+        //show modal
+        c(".pizzaWindowArea").style.opacity = 0;
+        c(".pizzaWindowArea").style.display = "flex";
+        setTimeout(()=> { c(".pizzaWindowArea").style.opacity = 1; } , 0000);
+    });
+
+  
+});
+
+//add one pizza
+ c(".pizzaInfo--qtmais").addEventListener("click", ()=> {
+    modalQt += 1;
+    c(".pizzaInfo--qt").innerHTML = modalQt;
+});
+
+//remove one pizza
+c(".pizzaInfo--qtmenos").addEventListener("click", ()=> {
+    if(modalQt === 1) return;
+        modalQt -= 1;
+        c(".pizzaInfo--qt").innerHTML = modalQt;
+});
+
+//select pizza size
+cs(".pizzaInfo--size").forEach(value => {
+    value.addEventListener("click", (e) => {
+        c(".pizzaInfo--size.selected").classList.remove("selected");
+        e.currentTarget.classList.add("selected");
+    });
+});
+
+//CLOSE MODAL
+document.querySelector(".pizzaWindowArea").addEventListener("click", (e) => {
+    if(["pizzaWindowArea", "pizzaInfo--cancelButton", "pizzaInfo--cancelMobileButton", "pizzaInfo--addButton"].includes(e.target.className)) {
+        
+        e.currentTarget.style.opacity = 0;
+        setTimeout(()=> {c(".pizzaWindowArea").style.display = "none"; }, 500);
+        
+        //selecte the big size when the modal get closed
+        // cs(".pizzaInfo--size").forEach((value, index, array) => {
+        //     if(index == array.length - 1) return value.classList.add("selected");
+        //     value.classList.remove("selected");
+        // });
+    }
+});
+
+//cart event 
+c(".pizzaInfo--addButton").addEventListener("click", () => {
+
+    let pizzaId = parseInt(c(".pizzaWindowArea").getAttribute("data-id"));
+    // let getPizza = pizzaJson.find(value => value.id == pizzaId);
+    let pizzaSize = c(".pizzaInfo--size.selected").textContent;
+
+    let pizza = {
+        id: pizzaId, 
+        size: pizzaSize, 
+        qt: modalQt
+    };
+
+    //check if the pizza is in the cart
+    let getPizza = cart.findIndex(value => {
+        if(value.id == pizza.id && value.size == pizza.size){
+            return true;
+        }
+    });
+
+    //if true just add the quantity to the existent pizza in the cart
+    if(getPizza > -1) {
+        cart[getPizza].qt += pizza.qt;
+
+    } else {
+        //push a new pizza
+        cart.push(pizza);
+    }
+
+    console.log(cart);
+});
