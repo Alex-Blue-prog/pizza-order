@@ -121,5 +121,89 @@ c(".pizzaInfo--addButton").addEventListener("click", () => {
         cart.push(pizza);
     }
 
-    console.log(cart);
+    // console.log(cart);
+    updateCart();
 });
+
+//open mobile menu cart func
+c(".menu-openner").addEventListener("click", ()=> {
+    c("aside").style.left = "0px";  
+});
+//close mobile menu cart func
+c(".menu-closer").addEventListener("click", () => {
+    c("aside").style.left = "100vw";  
+})
+
+//open or close menu cart func
+function updateCart() {
+    c(".menu-openner span").innerHTML = cart.length;
+
+    if(cart.length > 0) {
+        c("aside").classList.add("show");
+
+        // another way of calculate subtotal
+        // let subTotal = 0;
+        // cart.forEach(cartItem => {
+        //     pizzaJson.forEach(pizzaItem => {
+        //         if(pizzaItem.id == cartItem.id) {
+        //             subTotal += pizzaItem.price * cartItem.qt;
+        //         }
+        //     });
+        // });
+
+        let subTotal = 0;
+        let desconto = 10;
+        let total = 0;
+
+        c(".cart").innerHTML = ""; //always reset cart for avoid duplicated elements.
+
+        //show pizzas in the cart
+        cart.forEach((value, index) => {
+
+            let getPizza = pizzaJson.find(pizzaJs => pizzaJs.id == value.id);
+
+            //calculate price (subtotal, descont, total)
+            subTotal += getPizza.price * value.qt; 
+            desconto = desconto / 100 * subTotal;
+            total = subTotal - desconto;
+
+            //create clone based on the pizza id
+            let cartItem = c(".cart--item").cloneNode(true);
+            cartItem.querySelector("img").src = getPizza.img;
+            cartItem.querySelector(".cart--item-nome").innerHTML = `${getPizza.name} <small>(${value.size.charAt(0)})</small>`;
+            cartItem.querySelector(".cart--item--qt").textContent = value.qt;
+
+            //add pizza qt in the cart
+            cartItem.querySelector(".cart--item-qtmais").addEventListener("click", () => {
+                value.qt += 1;
+                updateCart();
+            });
+
+            //remove pizza qt in the cart or remove the pizza element
+            cartItem.querySelector(".cart--item-qtmenos").addEventListener("click", () => {
+                if(value.qt == 1) {
+                    cart.splice(index, 1);
+                    cartItem.remove();
+                } else {
+                    value.qt -= 1;
+                }
+
+                updateCart();
+            });
+            
+            c(".cart").append(cartItem);
+        });
+
+        c(".subtotal").lastElementChild.textContent = `R$ ${subTotal.toFixed(2)}`;
+        c(".desconto").lastElementChild.textContent = `R$ ${desconto.toFixed(2)}`;
+        c(".total").lastElementChild.textContent = `R$ ${total.toFixed(2)}`;
+
+    } else {
+        c("aside").classList.remove("show");
+        c("aside").style.left = "100vw";  //close menu in the mobile version
+
+        c(".subtotal").lastElementChild.textContent = `R$ 00.00`;
+        c(".desconto").lastElementChild.textContent = `R$ 00.00`;
+        c(".total").lastElementChild.textContent = `R$ 00.00`;
+    }
+}
